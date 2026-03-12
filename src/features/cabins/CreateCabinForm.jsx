@@ -1,5 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import toast from "react-hot-toast";
+import { useForm } from "react-hook-form";
 
 import Input from "../../ui/Input";
 import Form from "../../ui/Form";
@@ -8,10 +7,14 @@ import FileInput from "../../ui/FileInput";
 import Textarea from "../../ui/Textarea";
 import FormRow from "../../ui/FormRow";
 
-import { useForm } from "react-hook-form";
-import { createEditCabin } from "../../services/apiCabins";
+import { useCreateCabin } from "./useCreateCabin";
+import { useUpdateCabin } from "./useUpdateCabin";
 
 function CreateCabinForm({ cabinToEdit }) {
+  const { isCreating, createCabin } = useCreateCabin();
+  const { isUpdating, updateCabin } = useUpdateCabin();
+  const isWorking = isCreating || isUpdating; //ha bármelyik true, akkor true lesz, és ez alapján tudjuk disablolni a gombot, hogy ne lehessen egyszerre létrehozni és szerkeszteni
+
   const { id: editId, ...editValues } = cabinToEdit || {}; //ha nincs cabinToEdit, akkor üres objektumot destructuringolunk, így editId és editValues undefined lesz, de nem lesz error
   const isEditSession = Boolean(editId);
 
@@ -20,37 +23,28 @@ function CreateCabinForm({ cabinToEdit }) {
   });
   const { errors } = formState; // formState a useForm-bol jön, és ebben van egy errors nevű objektum (amit is destructuring kiveszünk), amiben a mezők nevei kulcsként szerepelnek, és értékük egy objektum, ami tartalmazza a hibaüzenetet (message) és egyéb információkat a hibáról. Ha nincs hiba, akkor az adott mező neve nem lesz jelen az errors objektumban.
 
-  const queryClient = useQueryClient();
-
-  const { mutate: createCabin, isPending: isCreating } = useMutation({
-    mutationFn: createEditCabin,
-    onSuccess: () => {
-      toast.success("New cabin successfully created");
-      queryClient.invalidateQueries({ queryKey: ["cabins"] });
-      reset();
-    },
-    onError: (err) => toast.error(err.message),
-  });
-
-  const { mutate: editCabin, isPending: isEditing } = useMutation({
-    mutationFn: ({ newCabinData, id }) => createEditCabin(newCabinData, id),
-    onSuccess: () => {
-      toast.success("Cabin successfully updated");
-      queryClient.invalidateQueries({ queryKey: ["cabins"] });
-      reset();
-    },
-    onError: (err) => toast.error(err.message),
-  });
-
-  const isWorking = isCreating || isEditing; //ha bármelyik true, akkor true lesz, és ez alapján tudjuk disablolni a gombot, hogy ne lehessen egyszerre létrehozni és szerkeszteni
-
   //data itt a data, a fildeknek, amik registerelve vannak
   function onSubmit(data) {
     const image = typeof data.image === "string" ? data.image : data.image[0]; //ha edit sessionben vagyunk, akkor a data.image már egy string lesz (a kép url-je), ha pedig create sessionben vagyunk, akkor a data.image egy FileList lesz, amiből ki kell szedni az első elemet (a feltöltött fájlt)
 
     if (isEditSession)
-      editCabin({ newCabinData: { ...data, image }, id: editId });
-    else createCabin({ ...data, image: image });
+      updateCabin(
+        { newCabinData: { ...data, image }, id: editId },
+        {
+          onSuccess: (data) => {
+            reset();
+          },
+        },
+      );
+    else
+      createCabin(
+        { ...data, image: image },
+        {
+          onSuccess: (data) => {
+            reset();
+          },
+        },
+      );
   }
 
   function onError(errors) {
