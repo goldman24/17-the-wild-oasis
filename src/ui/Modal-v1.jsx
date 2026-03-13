@@ -1,8 +1,6 @@
-import { cloneElement, createContext, useContext, useState } from "react";
 import { createPortal } from "react-dom";
 import { HiXMark } from "react-icons/hi2";
 import styled from "styled-components";
-import { useOutsideClick } from "../hooks/useOutsideClick";
 
 const StyledModal = styled.div`
   position: fixed;
@@ -54,53 +52,19 @@ const Button = styled.button`
   }
 `;
 
-//COMPOUND COMPONENT way
-
-//1. Create context
-const ModalContext = createContext();
-
-//2. create parent component
-function Modal({ children }) {
-  const [openName, setOpenName] = useState("");
-
-  const close = () => setOpenName("");
-  const open = setOpenName;
-
-  return (
-    <ModalContext.Provider value={{ openName, close, open }}>
-      {children}
-    </ModalContext.Provider>
-  );
-}
-//3. create child components
-function Open({ children, opens: opensWindowName }) {
-  const { open } = useContext(ModalContext);
-
-  return cloneElement(children, { onClick: () => open(opensWindowName) });
-}
-
-function Window({ children, name }) {
-  const { openName, close } = useContext(ModalContext);
-  const ref = useOutsideClick(close);
-
-  if (name !== openName) return null;
-
+function Modal({ children, onClose }) {
   return createPortal(
     // Portal-al ki lehet venni egy elementet, és a dom-on belül egy valasztott helyre berakni, ugy, hogy a component ugyanott maradjon a react component tree-ben
     <Overlay>
-      <StyledModal ref={ref}>
-        <Button onClick={close}>
+      <StyledModal>
+        <Button onClick={onClose}>
           <HiXMark />
         </Button>
-        <div>{cloneElement(children, { onCloseModal: close })}</div>
+        <div>{children}</div>
       </StyledModal>
     </Overlay>,
     document.body, //portal azert jo mert overflow: hidden-nél nem lesz conflict - reusability segito
   );
 }
-
-//4. place child components as properties of the modal
-Modal.Open = Open;
-Modal.Window = Window;
 
 export default Modal;
