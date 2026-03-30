@@ -13,3 +13,19 @@ const StyledSelect = styled.select`
   font-weight: 500;
   box-shadow: var(--shadow-sm);
 `;
+
+function Select({ options, value, onChange, ...props }) {
+  //...props arra jo, hogyha van tobb ilyen prop, hogy type="" , valami="" (ui szeru), akkor ezeket egyben átveszi
+  return (
+    //és akkor itt ...props -al az elementen belul spread-el elfogad minden propot egyszerre
+    <StyledSelect value={value} onChange={onChange} {...props}>
+      {options.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </StyledSelect>
+  );
+}
+
+export default Select;
