@@ -3,7 +3,7 @@ import toast from "react-hot-toast";
 import { deleteCabin as deleteCabinApi } from "../../services/apiCabins";
 
 export function useDeleteCabin() {
-  const queryClient = useQueryClient(); //ki kell szedni ezt, hogy invalidate queries
+  const queryClient = useQueryClient(); //ki kell szedni ezt, hogy invalidate queries tudja
 
   //{} - destructuring - saving the results of useMutation
   const { isPending: isDeleting, mutate: deleteCabin } = useMutation({
