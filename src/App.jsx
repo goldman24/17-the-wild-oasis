@@ -15,6 +15,7 @@ import PageNotFound from "./pages/PageNotFound";
 import AppLayout from "./ui/AppLayout";
 import Booking from "./pages/Booking";
 import Checkin from "./pages/Checkin";
+import ProtectedRoute from "./ui/ProtectedRoute";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -34,7 +35,13 @@ function App() {
       <BrowserRouter>
         <Routes>
           {/* azert layout route mert nincs path prop */}
-          <Route element={<AppLayout />}>
+          <Route
+            element={
+              <ProtectedRoute>
+                <AppLayout />
+              </ProtectedRoute>
+            } //ezek az alatta levo route-ok is protectedroute, applayout children
+          >
             {/* ha index url-t adunk meg, ez lesz a default oldalunk */}
             {/* Navigate - declarative redirect, ha a "/" url-t adjuk meg, akkor a "dashboard" url-re lesz iranyitva, és nem sima / */}
             <Route index element={<Navigate replace to="dashboard" />} />
