@@ -7,14 +7,14 @@ export function useUpdateUser() {
 
   const { mutate: updateUser, isLoading: isUpdating } = useMutation({
     mutationFn: updateCurrentUser,
-    onSuccess: (data, variables) => {
+    onSuccess: (user, { password }) => {
       toast.success(
-        variables.password
+        password
           ? "Password successfully updated"
           : "User account successfully updated",
       );
-
-      queryClient.invalidateQueries({ queryKey: ["user"] });
+      // queryClient.setQueryData(["user"], user); //kézzel azonnal az új adat a cache-be - gyors
+      queryClient.invalidateQueries({ queryKey: ["user"] }); // stale-nak jeloljuk a query-t és ujra letoltjuk - biztosabb, mert szerverrol kerjuk
     },
     onError: (err) => toast.error(err.message),
   });
